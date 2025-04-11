@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Health Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: var(--primary) !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-container h4 {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+        .bot-msg {
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .user-msg {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: right;
+        }
+
+        .appointment-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-action-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .typing-indicator {
+            color: #64748b;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            border-radius: 20px;
+        }
+
+        .input-group button {
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">GP Services</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav gap-2">
+                <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="chat-container">
+    <h4 class="mb-4 text-center">🤖 AI Health Assistant</h4>
+    <div class="chat-box" id="chatBox">
+        <div class="bot-msg message">Hi! I'm your AI health assistant. How can I help you today?</div>
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="sendQuickAction('book appointment')">Book Appointment</button>
+            <button class="quick-action-btn" onclick="sendQuickAction('check availability')">Check Availability</button>
+            <button class="quick-action-btn" onclick="sendQuickAction('cancel appointment')">Cancel Appointment</button>
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">Bot is typing...</div>
+
+    <div class="input-group">
+        <input type="text" id="userInput" class="form-control" placeholder="Type your message..." autofocus>
+        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const userId = "{{ session.get('user_id', '') }}";
+    const userName = "{{ session.get('user', '') }}";
+
+    function showTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'block';
+    }
+
+    function hideTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'none';
+    }
+
+    function addMessage(message, isUser = false) {
+        const chatBox = document.getElementById("chatBox");
+        const messageDiv = document.createElement('div');
+        messageDiv.className = isUser ? 'user-msg message' : 'bot-msg message';
+        messageDiv.innerHTML = `<strong>${isUser ? 'You' : 'Bot'}:</strong> ${message}`;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function renderAppointment(appointmentData) {
+        return `
+            <div class="appointment-card">
+                <div><strong>Reference:</strong> ${appointmentData.reference}</div>
+                <div><strong>Date:</strong> ${appointmentData.date}</div>
+                <div><strong>Time:</strong> ${appointmentData.time}</div>
+                <div><strong>Status:</strong> ${appointmentData.status}</div>
+            </div>
+        `;
+    }
+
+    function sendQuickAction(action) {
+        const input = document.getElementById("userInput");
+        input.value = action;
+        sendMessage();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const message = input.value.trim();
+
+        if (message === '') return;
+
+        try {
+            addMessage(message, true);
+            input.value = '';
+            showTypingIndicator();
+
+            const response = await fetch('/chatbot-response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+            hideTypingIndicator();
+
+            if (data.success) {
+                addMessage(data.reply, false);
+
+                // Handle any additional data
+                if (data.appointment) {
+                    addAppointmentCard(data.appointment);
+                }
+                if (data.available_slots) {
+                    addAvailableSlots(data.available_slots);
+                }
+            } else {
+                addMessage(`Sorry, there was an error: ${data.error}`, false);
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            hideTypingIndicator();
+            addMessage("Sorry, there was an error processing your request. Please try again.", false);
+        }
+    }
+
+    function addAppointmentCard(appointment) {
+        const chatBox = document.getElementById("chatBox");
+        const appointmentDiv = document.createElement('div');
+        appointmentDiv.className = 'appointment-card';
+        appointmentDiv.innerHTML = `
+            <div><strong>Appointment Details:</strong></div>
+            <div>Reference: ${appointment.reference}</div>
+            <div>Date: ${appointment.date}</div>
+            <div>Time: ${appointment.time}</div>
+            <div>Status: ${appointment.status}</div>
+        `;
+        chatBox.appendChild(appointmentDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addAvailableSlots(slots) {
+        const chatBox = document.getElementById("chatBox");
+        const slotsDiv = document.createElement('div');
+        slotsDiv.className = 'quick-actions';
+        slotsDiv.innerHTML = '<div><strong>Available Slots:</strong></div>';
+        slots.forEach(slot => {
+            const button = document.createElement('button');
+            button.className = 'quick-action-btn';
+            button.textContent = slot;
+            button.onclick = () => sendQuickAction(slot);
+            slotsDiv.appendChild(button);
+        });
+        chatBox.appendChild(slotsDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Handle Enter key
+    document.getElementById("userInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --surface: #f8fafc;
+            --text-primary: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: 0 0 2rem 2rem;
+        }
+
+        .welcome-message {
+            color: white;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-sub {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            background: #e0e7ff;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem auto 2rem;
+            transition: background 0.2s;
+        }
+
+        .feature-card:hover .card-icon {
+            background: var(--primary);
+        }
+
+        .card-icon img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            margin-top: auto;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-logout {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .btn-logout:hover {
+            background: #e2e8f0;
+        }
+
+        footer {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 5rem;
+            padding: 2rem 0;
+            color: #64748b;
+        }
+
+        .nav-link {
+            color: #64748b !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.75rem;
+        }
+
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: var(--primary) !important;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/" style="color: var(--primary);">GP Services</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav gap-2">
+                <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="dashboard-header">
+    <div class="container text-center">
+        <h1 class="welcome-message display-4 mb-3">Welcome back, {{ session['user']['username'] }} 👋</h1>
+        <p class="welcome-sub">Manage your health services in one place</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="https://img.icons8.com/ios-glyphs/60/doctor-male.png" alt="Appointment">
+                </div>
+                <h3 class="h5 mb-3 fw-bold">Book Appointment</h3>
+                <p class="text-secondary mb-4">Schedule your visit with certified healthcare professionals at your convenience.</p>
+                <a href="/book" class="btn btn-primary">Book Now</a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="https://img.icons8.com/ios-glyphs/60/chatbot.png" alt="Chatbot">
+                </div>
+                <h3 class="h5 mb-3 fw-bold">AI Health Assistant</h3>
+                <p class="text-secondary mb-4">Get instant answers to your health questions with our intelligent chatbot.</p>
+                <a href="/chat" class="btn btn-primary">Start Chat</a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="https://img.icons8.com/ios-glyphs/60/calendar.png" alt="Appointments">
+                </div>
+                <h3 class="h5 mb-3 fw-bold">My Appointments</h3>
+                <p class="text-secondary mb-4">View and manage your scheduled appointments with ease.</p>
+                <a href="/my-appointments" class="btn btn-primary">View Appointments</a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="feature-card">
+                <div class="card-icon">
+                    <img src="https://img.icons8.com/ios-glyphs/60/exit.png" alt="Logout">
+                </div>
+                <h3 class="h5 mb-3 fw-bold">Secure Logout</h3>
+                <p class="text-secondary mb-4">Protect your account by securely ending your current session.</p>
+                <a href="/logout" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container text-center">
+        <div class="d-flex justify-content-center gap-3 mb-2">
+            <a href="#" class="text-decoration-none text-secondary">Privacy Policy</a>
+            <a href="#" class="text-decoration-none text-secondary">Terms of Service</a>
+        </div>
+        <div class="text-secondary">&copy; 2025 GP Services. All rights reserved.</div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-areas:
+                "header header"
+                "card1 card2"
+                "card3 card3";
+            gap: 20px;
+            justify-content: center;
+        }
+        .header {
+            grid-area: header;
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+        .card-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            font-size: 1.2em;
+            border-bottom: 1px solid #45a049;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card1 {
+            grid-area: card1;
+        }
+        .card2 {
+            grid-area: card2;
+        }
+        .card3 {
+            grid-area: card3;
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analytics Dashboard</h1>
+        </div>
+
+        <div class="card card1">
+            <div class="card-header">
+                User Registration Trend
+            </div>
+            <div class="card-body">
+                <canvas id="registeredUsersChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card card2">
+            <div class="card-header">
+                User Activity Distribution
+            </div>
+            <div class="card-body">
+                <canvas id="activeUsersChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card card3">
+            <div class="card-header">
+                Appointments Over Time
+            </div>
+            <div class="card-body">
+                <canvas id="appointmentsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2025 Analytics Dashboard. All rights reserved.
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/analytics/data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Registered Users Chart
+                        new Chart(document.getElementById('registeredUsersChart'), {
+                            type: 'line',
+                            data: {
+                                labels: data.data.registered_users.labels,
+                                datasets: [{
+                                    label: 'Registered Users',
+                                    data: data.data.registered_users.data,
+                                    borderColor: '#4CAF50',
+                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    title: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        });
+
+                        // Active Users
+                        new Chart(document.getElementById('activeUsersChart'), {
+                            type: 'pie',
+                            data: {
+                                labels: data.data.active_users.labels,
+                                datasets: [{
+                                    data: data.data.active_users.data,
+                                    backgroundColor: [
+                                        '#4CAF50',  // Green for active users
+                                        '#FF5722'   // Red for inactive users
+                                    ],
+                                    borderWidth: 1,
+                                    borderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    title: {
+                                        display: false
+                                    },
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            padding: 20,
+                                            font: {
+                                                size: 14
+                                            }
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.label || '';
+                                                let value = context.raw || 0;
+                                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                let percentage = ((value / total) * 100).toFixed(1);
+                                                return `${label}: ${value} (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Appointments Chart
+                        new Chart(document.getElementById('appointmentsChart'), {
+                            type: 'line',
+                            data: {
+                                labels: data.data.appointments.labels,
+                                datasets: [{
+                                    label: 'Total Appointments',
+                                    data: data.data.appointments.data,
+                                    borderColor: '#FF5722',
+                                    backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    title: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching analytics data:', error));
+        });
+    </script>
+</body>
+</html>
